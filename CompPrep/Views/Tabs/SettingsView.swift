@@ -9,7 +9,22 @@ import SwiftUI
 
 struct SettingsView: View {
     var body: some View {
-        /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Hello, world!@*/Text("Hello, world!")/*@END_MENU_TOKEN@*/
+        NavigationStack{
+            List {
+                NavigationLink(destination: ContentView()) {
+                    Text("Customer Center")
+                }
+                
+                NavigationLink(destination: ContentView()) {
+                    Text("Submit Feedback")
+                }
+                
+                NavigationLink(destination: ContentView()) {
+                    Text("Leave a Review")
+                }
+            }
+            .navigationTitle("Settings")
+        }
     }
 }
 

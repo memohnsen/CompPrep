@@ -6,11 +6,44 @@
 //
 
 import SwiftUI
+import Combine
 
 struct TimerView: View {
     @State private var settingsShown: Bool = false
     @State private var startClicked: Bool = false
     @State private var sets: Int = 3
+    @State private var countdown: Int = 5
+    @State private var countdownScale: Double = 0
+    
+    func startCountdown() {
+        countdown = 5
+        startClicked = true
+        animateCountdownNumber()
+    }
+
+    func animateCountdownNumber() {
+        countdownScale = 0
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+            countdownScale = 1.0
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            withAnimation(.easeOut(duration: 0.2)) {
+                countdownScale = 0
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                countdown -= 1
+                
+                if countdown > 0 {
+                    animateCountdownNumber()
+                } else {
+                    startClicked = false
+                }
+            }
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -88,7 +121,7 @@ struct TimerView: View {
                     
                     HStack(spacing: 16) {
                         Button {
-                            
+                            startCountdown()
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "play.fill")
@@ -169,6 +202,27 @@ struct TimerView: View {
                     .background(.ultraThinMaterial, in: Capsule())
                     .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                     .padding(.top, 8)
+            }
+            .overlay{
+                if startClicked {
+                    ZStack {
+                        Color.black.opacity(0.5)
+                            .ignoresSafeArea()
+                        
+                        VStack {
+                            Text("\(countdown)")
+                                .font(.system(size: 120, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(40)
+                                .background(
+                                    Circle()
+                                        .fill(Color.red)
+                                        .shadow(radius: 20)
+                                )
+                                .scaleEffect(countdownScale)
+                        }
+                    }
+                }
             }
         }
     }

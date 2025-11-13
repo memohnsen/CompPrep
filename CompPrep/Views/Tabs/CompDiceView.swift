@@ -9,6 +9,15 @@ import SwiftUI
 
 struct CompDiceView: View {
     @State private var settingsShown: Bool = false
+    @State private var diceOptions: [String] = [
+        "Power 60% before your next attempt",
+        "Rest 1 minute before your next set",
+        "Go back 2 sets and work back up",
+        "Rest 8 minutes before your next set",
+        "Pull 100% before your next attempt",
+        "Face the opposite direction for your next lift"
+    ]
+    
     var body: some View {
         NavigationStack {
             VStack {
@@ -26,16 +35,52 @@ struct CompDiceView: View {
                 }
             }
             .sheet(isPresented: $settingsShown) {
-                CompDiceSettingsView()
-                    .presentationDetents([.height(275)])
+                CompDiceSettingsView(diceOptions: $diceOptions)
             }
         }
     }
 }
 
 struct CompDiceSettingsView: View {
+    @Environment(\.dismiss) var dismiss
+    
+    @Binding var diceOptions: [String]
+    
+    func deleteItem(at offsets: IndexSet) {
+        diceOptions.remove(atOffsets: offsets)
+    }
+    
+    func addItem(item: String) {
+        diceOptions.append(item)
+    }
+    
     var body: some View {
-        /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Hello, world!@*/Text("Hello, world!")/*@END_MENU_TOKEN@*/
+        NavigationStack {
+            List {
+                ForEach(diceOptions.indices, id: \.self) { index in
+                    TextField("Edit item", text: $diceOptions[index])
+                }
+                .onDelete(perform: deleteItem)
+            }
+            .presentationDragIndicator(.visible)
+            .navigationTitle("Dice Options")
+            .toolbar{
+                ToolbarItem(placement: .topBarTrailing){
+                    Button(role: .confirm) {
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                    }
+                }
+                ToolbarItem {
+                    Button{
+                        addItem(item: "Enter your option")
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+        }
     }
 }
 
