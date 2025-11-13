@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @AppStorage("diceAnimation") var diceAnimation: Bool = true
+    
     var body: some View {
         NavigationStack{
             List {
@@ -15,12 +17,16 @@ struct SettingsView: View {
                     Text("Customer Center")
                 }
                 
-                NavigationLink(destination: ContentView()) {
+                NavigationLink(destination: FeedbackView()) {
                     Text("Submit Feedback")
                 }
                 
                 NavigationLink(destination: ContentView()) {
                     Text("Leave a Review")
+                }
+                
+                Section {
+                    Toggle("Dice Animation", isOn: $diceAnimation)
                 }
             }
             .navigationTitle("Settings")
