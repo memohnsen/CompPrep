@@ -8,15 +8,35 @@
 
 /* Begin PBXBuildFile section */
 		714A00292EC687230052D8E2 /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 714A00282EC687230052D8E2 /* ConfettiSwiftUI */; };
+		714A002C2EC68D8C0052D8E2 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 714A002B2EC68D8C0052D8E2 /* RevenueCat */; };
+		714A002E2EC68D8C0052D8E2 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 714A002D2EC68D8C0052D8E2 /* RevenueCatUI */; };
+		714A00312EC68DF10052D8E2 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = 714A00302EC68DF10052D8E2 /* PostHog */; };
+		714A00342EC68E100052D8E2 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 714A00332EC68E100052D8E2 /* Functions */; };
+		714A00362EC68E100052D8E2 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 714A00352EC68E100052D8E2 /* Supabase */; };
+		714A003D2EC68F0A0052D8E2 /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 714A003C2EC68F0A0052D8E2 /* Config.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		714A003C2EC68F0A0052D8E2 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		714AFF482EC52CEA0052D8E2 /* CompPrep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CompPrep.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		714A00722EC69A730052D8E2 /* Exceptions for "CompPrep" folder in "CompPrep" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 714AFF472EC52CEA0052D8E2 /* CompPrep */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		714AFF4A2EC52CEA0052D8E2 /* CompPrep */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				714A00722EC69A730052D8E2 /* Exceptions for "CompPrep" folder in "CompPrep" target */,
+			);
 			path = CompPrep;
 			sourceTree = "<group>";
 		};
@@ -27,7 +47,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				714A00342EC68E100052D8E2 /* Functions in Frameworks */,
+				714A002C2EC68D8C0052D8E2 /* RevenueCat in Frameworks */,
+				714A00362EC68E100052D8E2 /* Supabase in Frameworks */,
 				714A00292EC687230052D8E2 /* ConfettiSwiftUI in Frameworks */,
+				714A002E2EC68D8C0052D8E2 /* RevenueCatUI in Frameworks */,
+				714A00312EC68DF10052D8E2 /* PostHog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -37,6 +62,7 @@
 		714AFF3F2EC52CEA0052D8E2 = {
 			isa = PBXGroup;
 			children = (
+				714A003C2EC68F0A0052D8E2 /* Config.xcconfig */,
 				714AFF4A2EC52CEA0052D8E2 /* CompPrep */,
 				714AFF492EC52CEA0052D8E2 /* Products */,
 			);
@@ -71,6 +97,11 @@
 			name = CompPrep;
 			packageProductDependencies = (
 				714A00282EC687230052D8E2 /* ConfettiSwiftUI */,
+				714A002B2EC68D8C0052D8E2 /* RevenueCat */,
+				714A002D2EC68D8C0052D8E2 /* RevenueCatUI */,
+				714A00302EC68DF10052D8E2 /* PostHog */,
+				714A00332EC68E100052D8E2 /* Functions */,
+				714A00352EC68E100052D8E2 /* Supabase */,
 			);
 			productName = CompPrep;
 			productReference = 714AFF482EC52CEA0052D8E2 /* CompPrep.app */;
@@ -102,6 +133,9 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				714A00272EC687230052D8E2 /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
+				714A002A2EC68D8B0052D8E2 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				714A002F2EC68DF10052D8E2 /* XCRemoteSwiftPackageReference "posthog-ios" */,
+				714A00322EC68E100052D8E2 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 714AFF492EC52CEA0052D8E2 /* Products */;
@@ -118,6 +152,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				714A003D2EC68F0A0052D8E2 /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +228,8 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SUPABASE_KEY = "sb_publishable_SQ-w0vWM9q3r5eF6PCAFCQ_e12p8AmT";
+				SUPABASE_URL = "https:/$()/ztziuiiharxtvzitwzfv.supabase.co";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -250,6 +287,8 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				SUPABASE_KEY = "sb_publishable_SQ-w0vWM9q3r5eF6PCAFCQ_e12p8AmT";
+				SUPABASE_URL = "https:/$()/ztziuiiharxtvzitwzfv.supabase.co";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -265,6 +304,7 @@
 				DEVELOPMENT_TEAM = HCK9FFW6UX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CompPrep/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -297,6 +337,7 @@
 				DEVELOPMENT_TEAM = HCK9FFW6UX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CompPrep/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -351,6 +392,30 @@
 				minimumVersion = 2.0.3;
 			};
 		};
+		714A002A2EC68D8B0052D8E2 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.47.1;
+			};
+		};
+		714A002F2EC68DF10052D8E2 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.35.0;
+			};
+		};
+		714A00322EC68E100052D8E2 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -358,6 +423,31 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 714A00272EC687230052D8E2 /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
 			productName = ConfettiSwiftUI;
+		};
+		714A002B2EC68D8C0052D8E2 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 714A002A2EC68D8B0052D8E2 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		714A002D2EC68D8C0052D8E2 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 714A002A2EC68D8B0052D8E2 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
+		};
+		714A00302EC68DF10052D8E2 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 714A002F2EC68DF10052D8E2 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
+		};
+		714A00332EC68E100052D8E2 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 714A00322EC68E100052D8E2 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		714A00352EC68E100052D8E2 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 714A00322EC68E100052D8E2 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

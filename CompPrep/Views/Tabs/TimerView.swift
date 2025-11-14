@@ -33,6 +33,7 @@ struct TimerView: View {
     @State private var timer: Timer?
     @State private var restTimes: [Int] = []
     @State private var workoutCompleted: Bool = false
+    @State private var confettiCannon: Int = 0
     
     var setsRemaining: Int {
         return appliedSets - currentSetNumber
@@ -93,13 +94,14 @@ struct TimerView: View {
         timer?.invalidate()
         isTimerRunning = true
         
-        //MARK: - adjust here to make timer countdown faster to test transitions
-        timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) {_ in
+        //MARK: - adjust here to make timer countdown faster to test transitions, should be 1.0 for prod
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {_ in
             currentRestTime -= 1
             
             if currentRestTime <= 0 {
                 if currentSetNumber >= appliedSets {
                     workoutCompleted = true
+                    confettiCannon += 1
                     isTimerRunning = false
                     timer?.invalidate()
                     timer = nil
@@ -294,12 +296,12 @@ struct TimerView: View {
                                 .shadow(color: Color.orange.opacity(0.3), radius: 10, x: 0, y: 5)
                             }
                         }
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 28)
                     }
                 }
                 .padding(.horizontal, 24)
             }
-            .confettiCannon(trigger: $workoutCompleted, num: 200, radius: 500, hapticFeedback: true)
+            .confettiCannon(trigger: $confettiCannon, num: 200, radius: 500, hapticFeedback: true)
             .navigationTitle("Rest Timer")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

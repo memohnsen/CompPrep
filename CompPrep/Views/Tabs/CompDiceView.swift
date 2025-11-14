@@ -89,10 +89,6 @@ struct CompDiceView: View {
                     .padding(.top, 12)
                     
                     VStack(spacing: 12) {
-                        Image(systemName: "dice.fill")
-                            .font(.system(size: 32))
-                            .foregroundStyle(.white.opacity(0.9))
-                        
                         Text(isRolling ? displayText : rolledText)
                             .font(.system(size: 36, weight: .bold, design: .rounded))
                             .multilineTextAlignment(.center)

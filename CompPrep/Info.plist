@@ -2,13 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>SchemeUserState</key>
-	<dict>
-		<key>CompPrep.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>3</integer>
-		</dict>
-	</dict>
+	<key>SUPABASE_KEY</key>
+	<string>sb_publishable_SQ-w0vWM9q3r5eF6PCAFCQ_e12p8AmT</string>
+	<key>SUPABASE_URL</key>
+	<string>https:/$()/ztziuiiharxtvzitwzfv.supabase.co</string>
 </dict>
 </plist>

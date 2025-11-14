@@ -6,11 +6,9 @@
 //
 
 import SwiftUI
-//import Supabase
-//import Clerk
+import Supabase
 
 struct FeedbackView: View {
-//    @Environment(\.clerk) private var clerk
     @Environment(\.colorScheme) var colorScheme
 
     @State private var feedbackText: String = ""
@@ -18,6 +16,10 @@ struct FeedbackView: View {
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
     @State private var alertTitle: String = ""
+    
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
+    @State private var email: String = ""
     
     var body: some View {
         ZStack{
@@ -31,7 +33,7 @@ struct FeedbackView: View {
                             Text("First Name")
                                 .padding(.bottom, 2)
                                 .bold()
-                            Text(/*clerk.user?.firstName ?? */"Please Sign-In")
+                            TextField("Enter your first name...", text: $firstName)
                                 .foregroundStyle(Color(red: 102/255, green: 102/255, blue: 102/255))
                         }
                         Spacer()
@@ -46,7 +48,7 @@ struct FeedbackView: View {
                             Text("Last Name")
                                 .padding(.bottom, 2)
                                 .bold()
-                            Text(/*clerk.user?.lastName ?? */"Please Sign-In")
+                            TextField("Enter your last name...", text: $lastName)
                                 .foregroundStyle(Color(red: 102/255, green: 102/255, blue: 102/255))
                         }
                         Spacer()
@@ -61,7 +63,7 @@ struct FeedbackView: View {
                             Text("Email")
                                 .padding(.bottom, 2)
                                 .bold()
-                            Text(/*clerk.user?.emailAddresses.first?.emailAddress ?? */"Please Sign-In")
+                            TextField("Enter your email...", text: $email)
                                 .foregroundStyle(Color(red: 102/255, green: 102/255, blue: 102/255))
                         }
                         Spacer()
@@ -77,6 +79,7 @@ struct FeedbackView: View {
                                 .padding(.bottom, 2)
                                 .bold()
                             TextField("This is the best app ever made...", text: $feedbackText, axis: .vertical)
+                                .foregroundStyle(Color(red: 102/255, green: 102/255, blue: 102/255))
                         }
                         Spacer()
                     }
@@ -84,6 +87,8 @@ struct FeedbackView: View {
                     .padding()
                     .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
                     .cornerRadius(32)
+                    
+                    Spacer()
                     
                     Button(action: {
                         Task {
@@ -107,9 +112,9 @@ struct FeedbackView: View {
                         .cornerRadius(12)
                         .contentShape(Rectangle())
                     }
+                    .padding(.bottom)
                     .disabled(isLoading || feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     
-                    Spacer()
                 }
                 .navigationTitle("Submit Feedback")
                 .navigationBarTitleDisplayMode(.inline)
@@ -125,45 +130,45 @@ struct FeedbackView: View {
     
     @MainActor
     private func sendFeedback() async {
-//        guard !feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-//            alertTitle = "Error"
-//            alertMessage = "Please enter your feedback before sending."
-//            showAlert = true
-//            return
-//        }
-//        
-//        isLoading = true
-//        
-//        do {
-//            let requestBody = FeedbackRequest(
-//                name: "\(clerk.user?.firstName ?? "Unknown") \(clerk.user?.lastName ?? "Unknown")",
-//                email: clerk.user?.emailAddresses.first?.emailAddress ?? "Unknown",
-//                role: "user",
-//                description: feedbackText
-//            )
-//            
-//            try await supabase.functions
-//                .invoke(
-//                    "send-feedback",
-//                    options: FunctionInvokeOptions(
-//                        body: requestBody
-//                    )
-//                )
-//            
-//            alertTitle = "Success"
-//            alertMessage = "Your feedback has been sent successfully!"
-//            feedbackText = ""
-//            
-//        } catch {
-//            alertTitle = "Error"
-//            alertMessage = "An unexpected error occurred. Please try again."
-//            #if DEBUG
-//            print("Feedback error: \(error)")
-//            #endif
-//        }
-//        
-//        isLoading = false
-//        showAlert = true
+        guard !feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            alertTitle = "Error"
+            alertMessage = "Please enter your feedback before sending."
+            showAlert = true
+            return
+        }
+        
+        isLoading = true
+        
+        do {
+            let requestBody = FeedbackRequest(
+                name: "\(firstName) \(lastName)",
+                email: email,
+                role: "user",
+                description: feedbackText
+            )
+            
+            try await supabase.functions
+                .invoke(
+                    "send-feedback",
+                    options: FunctionInvokeOptions(
+                        body: requestBody
+                    )
+                )
+            
+            alertTitle = "Success"
+            alertMessage = "Your feedback has been sent successfully!"
+            feedbackText = ""
+            
+        } catch {
+            alertTitle = "Error"
+            alertMessage = "An unexpected error occurred. Please try again."
+            #if DEBUG
+            print("Feedback error: \(error)")
+            #endif
+        }
+        
+        isLoading = false
+        showAlert = true
     }
 }
 
