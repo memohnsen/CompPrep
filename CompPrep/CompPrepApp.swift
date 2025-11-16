@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import RevenueCat
+import RevenueCatUI
 
 @main
 struct CompPrepApp: App {
@@ -33,8 +34,26 @@ struct CompPrepApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainAppView()
         }
         .modelContainer(sharedModelContainer)
+    }
+}
+
+struct MainAppView: View {
+    @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
+    @StateObject private var customerManager = CustomerInfoManager()
+
+
+    var body: some View {
+        Group {
+            if hasSeenOnboarding && customerManager.hasProAccess {
+                ContentView()
+            } else if hasSeenOnboarding && !customerManager.hasProAccess {
+                PaywallView()
+            } else {
+                OnboardingView()
+            }
+        }
     }
 }
