@@ -49,16 +49,19 @@ struct MainAppView: View {
 
     var body: some View {
         Group {
-            if hasSeenOnboarding && customerManager.hasProAccess {
+            if hasSeenOnboarding{
                 ContentView()
-            } else if hasSeenOnboarding && !customerManager.hasProAccess {
-                PaywallView()
             } else {
                 OnboardingView()
             }
         }
         .onAppear {
             customerManager.setModelContext(modelContext)
+            Task {
+                await customerManager.fetchCustomerInfo()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshSubscription"))) { _ in
             Task {
                 await customerManager.fetchCustomerInfo()
             }

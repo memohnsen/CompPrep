@@ -51,11 +51,7 @@ struct SettingsView: View {
                             .bold()
                     }
                 }
-                
-                NavigationLink("Paywall Test", destination: PaywallView())
-            
-                
-                
+
 //                Link(destination: URL(string: "FILL IN LATER")!) {
 //                    HStack {
 //                        Text("Leave A Review")
