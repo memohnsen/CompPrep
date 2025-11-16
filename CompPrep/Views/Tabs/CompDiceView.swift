@@ -117,6 +117,8 @@ struct CompDiceView: View {
                     
                     Button{
                         rollDice()
+                        // Track dice roll with current option count and displayed text
+                        AnalyticsManager.shared.trackDiceRolled(optionCount: diceOptions.count, resultText: isRolling ? displayText : rolledText)
                     } label: {
                         HStack(spacing: 10) {
                             Image(systemName: "dice.fill")
@@ -160,6 +162,9 @@ struct CompDiceView: View {
             .sheet(isPresented: $settingsShown) {
                 CompDiceSettingsView(diceOptions: $diceOptions)
             }
+        }
+        .onAppear {
+            AnalyticsManager.shared.trackScreenView("CompDice")
         }
     }
 }

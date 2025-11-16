@@ -7,9 +7,17 @@
 
 import SwiftUI
 import SwiftData
+import RevenueCat
 
 @main
 struct CompPrepApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    init() {
+        let revenueCatKey = Bundle.main.object(forInfoDictionaryKey: "REVENUECAT_API_KEY") as! String
+        Purchases.configure(withAPIKey: revenueCatKey)
+    }
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,

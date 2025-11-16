@@ -46,6 +46,7 @@ struct TimerView: View {
         startClicked = true
         animateCountdownNumber()
         hasCountdownRun = true
+        AnalyticsManager.shared.trackTimerStarted(withCountdown: true, sets: appliedSets, minRestMin: appliedMinRest, maxRestMin: appliedMaxRest)
     }
 
     func animateCountdownNumber() {
@@ -93,6 +94,9 @@ struct TimerView: View {
         
         timer?.invalidate()
         isTimerRunning = true
+        if !isCountingDown && !hasCountdownRun {
+            AnalyticsManager.shared.trackTimerStarted(withCountdown: false, sets: appliedSets, minRestMin: appliedMinRest, maxRestMin: appliedMaxRest)
+        }
         
         //MARK: - adjust here to make timer countdown faster to test transitions, should be 1.0 for prod
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {_ in
@@ -102,6 +106,7 @@ struct TimerView: View {
                 if currentSetNumber >= appliedSets {
                     workoutCompleted = true
                     confettiCannon += 1
+                    AnalyticsManager.shared.trackTimerCompleted(totalSets: appliedSets)
                     isTimerRunning = false
                     timer?.invalidate()
                     timer = nil
@@ -241,6 +246,7 @@ struct TimerView: View {
                                     startCountdown()
                                 } else if isTimerRunning {
                                     pauseTimer()
+                                    AnalyticsManager.shared.trackTimerPaused(currentSet: currentSetNumber, secondsRemaining: currentRestTime)
                                     startClicked = false
                                 } else {
                                     startTimer()
@@ -271,6 +277,7 @@ struct TimerView: View {
                             }
                             
                             Button {
+                                AnalyticsManager.shared.trackTimerReset(currentSet: currentSetNumber)
                                 resetTimer()
                             } label: {
                                 HStack(spacing: 8) {
@@ -370,6 +377,9 @@ struct TimerView: View {
                 }
             }
         }
+        .onAppear {
+            AnalyticsManager.shared.trackScreenView("Timer")
+        }
     }
 }
 
@@ -454,3 +464,4 @@ struct TimerSettingsView: View {
 #Preview {
     TimerView()
 }
+

@@ -21,6 +21,8 @@ struct FeedbackView: View {
     @State private var lastName: String = ""
     @State private var email: String = ""
     
+    @Binding var isPresented: Bool
+    
     var body: some View {
         ZStack{
             Color(.systemGroupedBackground)
@@ -41,7 +43,7 @@ struct FeedbackView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
-                    .cornerRadius(32)
+                    .cornerRadius(12)
                     
                     HStack{
                         VStack(alignment: .leading){
@@ -56,7 +58,7 @@ struct FeedbackView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
-                    .cornerRadius(32)
+                    .cornerRadius(12)
                     
                     HStack{
                         VStack(alignment: .leading){
@@ -71,7 +73,7 @@ struct FeedbackView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
-                    .cornerRadius(32)
+                    .cornerRadius(12)
                     
                     HStack{
                         VStack(alignment: .leading){
@@ -86,7 +88,7 @@ struct FeedbackView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
-                    .cornerRadius(32)
+                    .cornerRadius(12)
                     
                     Spacer()
                     
@@ -119,7 +121,9 @@ struct FeedbackView: View {
                 .navigationTitle("Submit Feedback")
                 .navigationBarTitleDisplayMode(.inline)
                 .alert(alertTitle, isPresented: $showAlert) {
-                    Button("OK") { }
+                    Button("OK") {
+                        isPresented = false
+                    }
                 } message: {
                     Text(alertMessage)
                 }
@@ -196,7 +200,4 @@ enum NetworkError: Error, LocalizedError {
     }
 }
 
-#Preview {
-    FeedbackView()
-}
 
