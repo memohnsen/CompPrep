@@ -22,6 +22,8 @@ struct CompPrepApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
+            DiceOptionsEntity.self,
+            SubscriptionEntity.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -41,9 +43,9 @@ struct CompPrepApp: App {
 }
 
 struct MainAppView: View {
+    @Environment(\.modelContext) private var modelContext
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
     @StateObject private var customerManager = CustomerInfoManager()
-
 
     var body: some View {
         Group {
@@ -53,6 +55,12 @@ struct MainAppView: View {
                 PaywallView()
             } else {
                 OnboardingView()
+            }
+        }
+        .onAppear {
+            customerManager.setModelContext(modelContext)
+            Task {
+                await customerManager.fetchCustomerInfo()
             }
         }
     }

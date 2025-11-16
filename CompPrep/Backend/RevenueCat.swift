@@ -8,12 +8,35 @@
 import RevenueCat
 import Foundation
 import Combine
+import SwiftData
 
 class CustomerInfoManager: ObservableObject {
     @Published var customerInfo: CustomerInfo?
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var hasProAccess = false
+    @Published var isOnTrial = false
+    @Published var daysRemainingInTrial: Int?
+    @Published var subscriptionType: String?
+
+    private var modelContext: ModelContext?
+
+    func setModelContext(_ context: ModelContext) {
+        self.modelContext = context
+        loadCachedSubscriptionStatus()
+    }
+
+    private func loadCachedSubscriptionStatus() {
+        guard let context = modelContext else { return }
+
+        let descriptor = FetchDescriptor<SubscriptionEntity>()
+        if let cached = try? context.fetch(descriptor).first {
+            hasProAccess = cached.hasProAccess
+            isOnTrial = cached.isOnTrial
+            daysRemainingInTrial = cached.daysRemainingInTrial
+            subscriptionType = cached.subscriptionType
+        }
+    }
     
     func checkEntitlement() async {
         do {
@@ -47,6 +70,40 @@ class CustomerInfoManager: ObservableObject {
 
             hasProAccess = currentHasAccess
 
+            var trialStart: Date?
+            var trialEnd: Date?
+            var subType: String?
+            var onTrial = false
+
+            if let proEntitlement = customerInfo.entitlements.active["CompPrep Pro"] {
+                if proEntitlement.periodType == .trial {
+                    onTrial = true
+                    trialEnd = proEntitlement.expirationDate
+
+                    if let endDate = trialEnd {
+                        trialStart = Calendar.current.date(byAdding: .day, value: -3, to: endDate)
+                    }
+                }
+
+                if proEntitlement.productIdentifier.contains("lifetime") {
+                    subType = "lifetime"
+                } else if proEntitlement.productIdentifier.contains("monthly") {
+                    subType = "monthly"
+                }
+            }
+
+            isOnTrial = onTrial
+            subscriptionType = subType
+            daysRemainingInTrial = onTrial ? calculateDaysRemaining(until: trialEnd) : nil
+
+            cacheSubscriptionStatus(
+                hasAccess: currentHasAccess,
+                onTrial: onTrial,
+                trialStart: trialStart,
+                trialEnd: trialEnd,
+                subType: subType
+            )
+
         } catch {
             errorMessage = error.localizedDescription
             #if DEBUG
@@ -55,5 +112,45 @@ class CustomerInfoManager: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    private func calculateDaysRemaining(until date: Date?) -> Int? {
+        guard let endDate = date else { return nil }
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: Date(), to: endDate)
+        return max(0, components.day ?? 0)
+    }
+
+    private func cacheSubscriptionStatus(
+        hasAccess: Bool,
+        onTrial: Bool,
+        trialStart: Date?,
+        trialEnd: Date?,
+        subType: String?
+    ) {
+        guard let context = modelContext else { return }
+
+        let descriptor = FetchDescriptor<SubscriptionEntity>()
+        let cached = try? context.fetch(descriptor).first
+
+        if let existing = cached {
+            existing.hasProAccess = hasAccess
+            existing.isOnTrial = onTrial
+            existing.trialStartDate = trialStart
+            existing.trialEndDate = trialEnd
+            existing.subscriptionType = subType
+            existing.lastUpdated = Date()
+        } else {
+            let newEntity = SubscriptionEntity(
+                hasProAccess: hasAccess,
+                isOnTrial: onTrial,
+                trialStartDate: trialStart,
+                trialEndDate: trialEnd,
+                subscriptionType: subType
+            )
+            context.insert(newEntity)
+        }
+
+        try? context.save()
     }
 }

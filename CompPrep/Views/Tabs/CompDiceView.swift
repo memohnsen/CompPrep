@@ -6,24 +6,42 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct CompDiceView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var diceOptionsEntities: [DiceOptionsEntity]
     @AppStorage("diceAnimation") var diceAnimation: Bool = true
+    
     @State private var settingsShown: Bool = false
-
     @State private var rolledText: String = "Power 60% before your next attempt"
     @State private var isRolling: Bool = false
     @State private var rotationAngle: Double = 0
     @State private var displayText: String = ""
     
-    @State private var diceOptions: [String] = [
-        "Power 60% before your next attempt",
-        "Rest 1 minute before your next set",
-        "Go back 2 sets and work back up",
-        "Rest 8 minutes before your next set",
-        "Pull 100% before your next attempt",
-        "Face the opposite direction for your next lift"
-    ]
+    private var diceOptions: [String] {
+        if let entity = diceOptionsEntities.first {
+            return entity.diceOptions
+        }
+        return []
+    }
+    
+    private func initilializeDefaultOptions() {
+        if diceOptionsEntities.isEmpty {
+            let defaultOptions = DiceOptionsEntity(
+                id: 1,
+                diceOptions: [
+                    "Power 60% before your next attempt",
+                    "Rest 1 minute before your next set",
+                    "Go back 2 sets and work back up",
+                    "Rest 8 minutes before your next set",
+                    "Pull 100% before your next attempt",
+                    "Face the opposite direction for your next lift"
+                ]
+            )
+            modelContext.insert(defaultOptions)
+        }
+    }
     
     func rollDice() {
         if diceAnimation {
@@ -117,7 +135,6 @@ struct CompDiceView: View {
                     
                     Button{
                         rollDice()
-                        // Track dice roll with current option count and displayed text
                         AnalyticsManager.shared.trackDiceRolled(optionCount: diceOptions.count, resultText: isRolling ? displayText : rolledText)
                     } label: {
                         HStack(spacing: 10) {
@@ -160,7 +177,12 @@ struct CompDiceView: View {
                 }
             }
             .sheet(isPresented: $settingsShown) {
-                CompDiceSettingsView(diceOptions: $diceOptions)
+                if let entity = diceOptionsEntities.first{
+                    CompDiceSettingsView(entity: entity)
+                }
+            }
+            .onAppear{
+                initilializeDefaultOptions()
             }
         }
         .onAppear {
@@ -171,22 +193,34 @@ struct CompDiceView: View {
 
 struct CompDiceSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    
-    @Binding var diceOptions: [String]
+    @Environment(\.modelContext) private var modelContext
+    @Bindable var entity: DiceOptionsEntity
     
     func deleteItem(at offsets: IndexSet) {
-        diceOptions.remove(atOffsets: offsets)
+        entity.diceOptions.remove(atOffsets: offsets)
+        try? modelContext.save()
     }
     
     func addItem(item: String) {
-        diceOptions.append(item)
+        entity.diceOptions.append(item)
+        try? modelContext.save()
     }
     
     var body: some View {
         NavigationStack {
             List {
-                ForEach(diceOptions.indices, id: \.self) { index in
-                    TextField("Edit item", text: $diceOptions[index])
+                ForEach(0..<entity.diceOptions.count, id: \.self) { index in
+                    TextField("Edit item", text: Binding(
+                        get: {
+                            guard index < entity.diceOptions.count else { return "" }
+                            return entity.diceOptions[index]
+                        },
+                        set: {
+                            guard index < entity.diceOptions.count else { return }
+                            entity.diceOptions[index] = $0
+                            try? modelContext.save()
+                        }
+                    ))
                 }
                 .onDelete(perform: deleteItem)
             }
@@ -213,5 +247,6 @@ struct CompDiceSettingsView: View {
 }
 
 #Preview {
-    CompDiceView()
-}
+     CompDiceView()
+         .modelContainer(for: DiceOptionsEntity.self, inMemory: true)
+ }
