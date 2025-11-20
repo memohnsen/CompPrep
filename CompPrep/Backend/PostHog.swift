@@ -65,6 +65,10 @@ class AnalyticsManager {
     func trackDiceAnimationChanged(isOn: Bool) {
           PostHogSDK.shared.capture("dice_animation_changed", properties: ["is_on": isOn])
       }
+    
+    func trackHomeScreenChanged(screen: String) {
+        PostHogSDK.shared.capture("home_screen_changed", properties: ["screen": screen])
+    }
 
     // MARK: - Onboarding
     func trackOnboardingStarted() {

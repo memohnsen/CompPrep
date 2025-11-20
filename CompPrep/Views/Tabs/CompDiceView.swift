@@ -7,13 +7,10 @@
 
 import SwiftUI
 import SwiftData
-import RevenueCat
-import RevenueCatUI
 
 struct CompDiceView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var diceOptionsEntities: [DiceOptionsEntity]
-    @Query private var subscriptionEntities: [SubscriptionEntity]
     @AppStorage("diceAnimation") var diceAnimation: Bool = true
 
     @State private var settingsShown: Bool = false
@@ -22,10 +19,6 @@ struct CompDiceView: View {
     @State private var rotationAngle: Double = 0
     @State private var displayText: String = ""
 
-    private var hasProAccess: Bool {
-        subscriptionEntities.first?.hasProAccess ?? false
-    }
-    
     private var diceOptions: [String] {
         if let entity = diceOptionsEntities.first {
             return entity.diceOptions
@@ -85,124 +78,114 @@ struct CompDiceView: View {
 
     var body: some View {
         NavigationStack {
-            if hasProAccess {
-                ZStack {
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color(.systemBackground),
-                            Color(.systemGray6).opacity(0.3)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .ignoresSafeArea()
+            ZStack {
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(.systemBackground),
+                        Color(.systemGray6).opacity(0.3)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+                
+                VStack(spacing: 24) {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "dice.fill")
+                                .font(.system(size: 18))
+                                .foregroundStyle(.blue)
+                            Text("\(diceOptions.count) Options")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.primary)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                    }
+                    .padding(.top, 12)
                     
-                    VStack(spacing: 24) {
-                        VStack(spacing: 8) {
-                            HStack {
-                                Image(systemName: "dice.fill")
-                                    .font(.system(size: 18))
-                                    .foregroundStyle(.blue)
-                                Text("\(diceOptions.count) Options")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(.ultraThinMaterial, in: Capsule())
-                            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                    VStack(spacing: 12) {
+                        Text(isRolling ? displayText : rolledText)
+                            .font(.system(size: 36, weight: .bold, design: .rounded))
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(.white)
+                            .lineLimit(3)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 400)
+                    .padding(.vertical, 50)
+                    .padding(.horizontal, 24)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.blue.opacity(0.8),
+                                Color.blue
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(24)
+                    .shadow(color: Color.blue.opacity(0.3), radius: 20, x: 0, y: 10)
+                    .rotation3DEffect(.degrees(rotationAngle), axis: (x: 1, y: 0, z: 0))
+                    .scaleEffect(isRolling ? 0.95 : 1.0)
+                    
+                    Button{
+                        rollDice()
+                        AnalyticsManager.shared.trackDiceRolled(optionCount: diceOptions.count, resultText: isRolling ? displayText : rolledText)
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "dice.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text("Roll Dice")
+                                .font(.system(size: 17, weight: .semibold))
                         }
-                        .padding(.top, 12)
-                        
-                        VStack(spacing: 12) {
-                            Text(isRolling ? displayText : rolledText)
-                                .font(.system(size: 36, weight: .bold, design: .rounded))
-                                .multilineTextAlignment(.center)
-                                .foregroundStyle(.white)
-                                .lineLimit(3)
-                                .minimumScaleFactor(0.8)
-                        }
+                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 400)
-                        .padding(.vertical, 50)
-                        .padding(.horizontal, 24)
+                        .padding(.vertical, 18)
                         .background(
                             LinearGradient(
                                 gradient: Gradient(colors: [
-                                    Color.blue.opacity(0.8),
-                                    Color.blue
+                                    Color.green.opacity(0.8),
+                                    Color.green
                                 ]),
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .cornerRadius(24)
-                        .shadow(color: Color.blue.opacity(0.3), radius: 20, x: 0, y: 10)
-                        .rotation3DEffect(.degrees(rotationAngle), axis: (x: 1, y: 0, z: 0))
-                        .scaleEffect(isRolling ? 0.95 : 1.0)
-                        
-                        Button{
-                            rollDice()
-                            AnalyticsManager.shared.trackDiceRolled(optionCount: diceOptions.count, resultText: isRolling ? displayText : rolledText)
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "dice.fill")
-                                    .font(.system(size: 18, weight: .semibold))
-                                Text("Roll Dice")
-                                    .font(.system(size: 17, weight: .semibold))
-                            }
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.green.opacity(0.8),
-                                        Color.green
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .cornerRadius(16)
-                            .shadow(color: Color.green.opacity(0.3), radius: 10, x: 0, y: 5)
-                        }
-                        .padding(.bottom, 44)
+                        .cornerRadius(16)
+                        .shadow(color: Color.green.opacity(0.3), radius: 10, x: 0, y: 5)
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.bottom, 44)
                 }
-                .navigationTitle("Comp Dice")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem {
-                        Button {
-                            settingsShown = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 18))
-                                .foregroundStyle(.blue)
-                        }
+                .padding(.horizontal, 24)
+            }
+            .navigationTitle("Comp Dice")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem {
+                    Button {
+                        settingsShown = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.blue)
                     }
                 }
-                .sheet(isPresented: $settingsShown) {
-                    if let entity = diceOptionsEntities.first{
-                        CompDiceSettingsView(entity: entity)
-                    }
+            }
+            .sheet(isPresented: $settingsShown) {
+                if let entity = diceOptionsEntities.first{
+                    CompDiceSettingsView(entity: entity)
                 }
-                .onAppear{
-                    initilializeDefaultOptions()
-                }
-                .onAppear {
-                    AnalyticsManager.shared.trackScreenView("CompDice")
-                }
-            } else {
-                PaywallView()
-                    .onRestoreCompleted { customerInfo in
-                        NotificationCenter.default.post(name: NSNotification.Name("RefreshSubscription"), object: nil)
-                    }
-                    .onPurchaseCompleted { customerInfo in
-                        NotificationCenter.default.post(name: NSNotification.Name("RefreshSubscription"), object: nil)
-                    }
+            }
+            .onAppear{
+                initilializeDefaultOptions()
+            }
+            .onAppear {
+                AnalyticsManager.shared.trackScreenView("CompDice")
             }
         }
     }

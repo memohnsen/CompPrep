@@ -46,24 +46,55 @@ struct MainAppView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
     @StateObject private var customerManager = CustomerInfoManager()
+    @StateObject private var timerManager = TimerManager()
+    @State private var showLaunchScreen = true
 
     var body: some View {
-        Group {
-            if hasSeenOnboarding{
-                ContentView()
-            } else {
-                OnboardingView()
+        ZStack {
+            Group {
+                if !hasSeenOnboarding {
+                    OnboardingView()
+                    //MARK: - NEEDS ! FOR PROD, REMOVED FOR DEV SIM
+                } else if customerManager.hasProAccess {
+                    PaywallView()
+                        .onRestoreCompleted { _ in
+                            Task {
+                                await customerManager.fetchCustomerInfo()
+                            }
+                        }
+                        .onPurchaseCompleted { _ in
+                            Task {
+                                await customerManager.fetchCustomerInfo()
+                            }
+                        }
+                } else {
+                    ContentView()
+                        .environmentObject(timerManager)
+                }
+            }
+            .onAppear {
+                customerManager.setModelContext(modelContext)
+                Task {
+                    await customerManager.fetchCustomerInfo()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshSubscription"))) { _ in
+                Task {
+                    await customerManager.fetchCustomerInfo()
+                }
+            }
+
+            if showLaunchScreen {
+                LaunchScreenView()
+                    .transition(.opacity)
+                    .zIndex(1)
             }
         }
         .onAppear {
-            customerManager.setModelContext(modelContext)
-            Task {
-                await customerManager.fetchCustomerInfo()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshSubscription"))) { _ in
-            Task {
-                await customerManager.fetchCustomerInfo()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showLaunchScreen = false
+                }
             }
         }
     }

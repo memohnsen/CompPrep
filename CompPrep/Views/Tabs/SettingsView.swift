@@ -11,13 +11,19 @@ import RevenueCatUI
 
 struct SettingsView: View {
     @AppStorage("diceAnimation") var diceAnimation: Bool = true
+    @AppStorage("selectedHomeScreen") var selectedHomeScreen = "Comp Dice"
     @Environment(\.colorScheme) var colorScheme
     @State private var isCustomerCenterPresented: Bool = false
     @State private var feedbackPresented: Bool = false
+    @State private var emailListPresented: Bool = false
     
     static var appVersion: String? {
         return Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
     }
+    
+    let homeScreenOptions: [String] = ["Comp Dice", "Timer"]
+    
+    
 
     var body: some View {
         NavigationStack{
@@ -51,6 +57,20 @@ struct SettingsView: View {
                             .bold()
                     }
                 }
+                
+                Button {
+                    emailListPresented = true
+                } label: {
+                    HStack {
+                        Text("Sign Up To Recieve Updates")
+                            .foregroundStyle(colorScheme == .light ? .black : .white)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.gray.opacity(0.6))
+                            .font(.system(size: 13))
+                            .bold()
+                    }
+                }
 
 //                Link(destination: URL(string: "FILL IN LATER")!) {
 //                    HStack {
@@ -69,6 +89,15 @@ struct SettingsView: View {
                         .simultaneousGesture(TapGesture().onEnded {
                             AnalyticsManager.shared.trackDiceAnimationChanged(isOn: diceAnimation)
                         })
+                    
+                    Picker("Home Screen", selection: $selectedHomeScreen) {
+                        ForEach(homeScreenOptions, id: \.self) {
+                            Text($0)
+                        }
+                    }
+                    .onChange(of: selectedHomeScreen) { _, newValue in
+                        AnalyticsManager.shared.trackHomeScreenChanged(screen: newValue)
+                    }
                 }
             }
             .navigationTitle("Settings")
@@ -77,6 +106,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $feedbackPresented) {
                 FeedbackView(isPresented: $feedbackPresented)
+            }
+            .sheet(isPresented: $emailListPresented) {
+                EmailListView(isPresented: $emailListPresented)
             }
             .overlay(alignment: .bottom) {
                 Text("CompPrep Version: \(String(describing: SettingsView.appVersion!))")

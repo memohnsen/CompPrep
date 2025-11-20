@@ -12,6 +12,8 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
     @State private var selected: String = ""
+    @AppStorage("selectedHomeScreen") var selectedHomeScreen = "Comp Dice"
+
 
     var body: some View {
         TabView(selection: $selected){
@@ -23,6 +25,11 @@ struct ContentView: View {
             }
             Tab("Settings", systemImage: "gear", value: "Settings") {
                 SettingsView()
+            }
+        }
+        .onAppear{
+            if selected.isEmpty {
+                selected = selectedHomeScreen
             }
         }
     }

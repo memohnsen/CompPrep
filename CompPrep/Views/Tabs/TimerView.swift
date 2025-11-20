@@ -11,33 +11,20 @@ import ConfettiSwiftUI
 
 struct TimerView: View {
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var timerManager: TimerManager
     @State private var settingsShown: Bool = false
     @State private var startClicked: Bool = false
     @State private var countdownOn: Bool = false
     @State private var isCountingDown: Bool = false
     @State private var hasCountdownRun: Bool = false
     
-    @State private var appliedSets: Int = 5
     @State private var draftSets: Int = 5
-    @State private var appliedMinRest: Int = 1
     @State private var draftMinRest: Int = 1
-    @State private var appliedMaxRest: Int = 8
     @State private var draftMaxRest: Int = 8
     
     @State private var countdown: Int = 5
     @State private var countdownScale: Double = 0
-    
-    @State private var isTimerRunning: Bool = false
-    @State private var currentSetNumber: Int = 1
-    @State private var currentRestTime: Int = 180
-    @State private var timer: Timer?
-    @State private var restTimes: [Int] = []
-    @State private var workoutCompleted: Bool = false
     @State private var confettiCannon: Int = 0
-    
-    var setsRemaining: Int {
-        return appliedSets - currentSetNumber
-    }
     
     
     func startCountdown() {
@@ -46,7 +33,7 @@ struct TimerView: View {
         startClicked = true
         animateCountdownNumber()
         hasCountdownRun = true
-        AnalyticsManager.shared.trackTimerStarted(withCountdown: true, sets: appliedSets, minRestMin: appliedMinRest, maxRestMin: appliedMaxRest)
+        AnalyticsManager.shared.trackTimerStarted(withCountdown: true, sets: timerManager.appliedSets, minRestMin: timerManager.appliedMinRest, maxRestMin: timerManager.appliedMaxRest)
     }
 
     func animateCountdownNumber() {
@@ -69,80 +56,50 @@ struct TimerView: View {
                 } else {
                     isCountingDown = false
                     startClicked = true
-                    startTimer()
+                    timerManager.startTimer(trackAnalytics: false)
                 }
             }
         }
     }
     
-    func generateRestTimes() -> [Int] {
-        var times: [Int] = []
-        for _ in 0..<appliedSets {
-            let randomMinutes = Int.random(in: appliedMinRest...appliedMaxRest)
-            times.append(randomMinutes * 60)
-        }
-        return times
-    }
-    
-    func startTimer() {
-        if restTimes.isEmpty {
-            restTimes = generateRestTimes()
-            currentSetNumber = 1
-            currentRestTime = restTimes[0]
-            workoutCompleted = false
-        }
-        
-        timer?.invalidate()
-        isTimerRunning = true
-        if !isCountingDown && !hasCountdownRun {
-            AnalyticsManager.shared.trackTimerStarted(withCountdown: false, sets: appliedSets, minRestMin: appliedMinRest, maxRestMin: appliedMaxRest)
-        }
-        
-        //MARK: - adjust here to make timer countdown faster to test transitions, should be 1.0 for prod
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {_ in
-            currentRestTime -= 1
-            
-            if currentRestTime <= 0 {
-                if currentSetNumber >= appliedSets {
-                    workoutCompleted = true
-                    confettiCannon += 1
-                    AnalyticsManager.shared.trackTimerCompleted(totalSets: appliedSets)
-                    isTimerRunning = false
-                    timer?.invalidate()
-                    timer = nil
-                    startClicked = false
-                } else {
-                    currentSetNumber += 1
-                    currentRestTime = restTimes[currentSetNumber - 1]
-                }
-            }
+    var displayText: String {
+        if timerManager.workoutCompleted {
+            return "Completed!"
+        } else if !timerManager.restTimes.isEmpty {
+            return timerManager.formatTime(timerManager.currentRestTime)
+        } else {
+            return "Press Start To Begin!"
         }
     }
     
-    func pauseTimer() {
-        isTimerRunning = false
-        timer?.invalidate()
-        timer = nil
+    var displayFontSize: CGFloat {
+        if timerManager.workoutCompleted || timerManager.restTimes.isEmpty {
+            return 50
+        } else {
+            return 100
+        }
     }
-    
-    func resetTimer() {
-        isTimerRunning = false
-        timer?.invalidate()
-        timer = nil
-        currentSetNumber = 1
-        hasCountdownRun = false
-        startClicked = false
-        isCountingDown = false
-        workoutCompleted = false
-        restTimes = []
+
+    var toggleForegroundColor: Color {
+        if !timerManager.restTimes.isEmpty {
+            return .gray
+        } else {
+            return colorScheme == .light ? .black : .white
+        }
     }
-    
-    func formatTime(_ seconds: Int) -> String {
-        let minutes = seconds / 60
-        let secs = seconds % 60
-        return String(format: "%d:%02d", minutes, secs)
+
+    var buttonText: String {
+        if timerManager.workoutCompleted {
+            return "Nice Work!"
+        } else if timerManager.isTimerRunning {
+            return "Pause"
+        } else if timerManager.restTimes.isEmpty {
+            return "Start"
+        } else {
+            return "Resume"
+        }
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -166,8 +123,8 @@ struct TimerView: View {
                             .textCase(.uppercase)
                             .tracking(1.2)
                         
-                        Text(workoutCompleted ? "Completed!" : !restTimes.isEmpty ? formatTime(currentRestTime) : "Press Start To Begin!")
-                            .font(.system(size: workoutCompleted || restTimes.isEmpty ? 50 : 100, weight: .bold, design: .rounded))
+                        Text(displayText)
+                            .font(.system(size: displayFontSize, weight: .bold, design: .rounded))
                             .foregroundStyle(.white)
                             .monospacedDigit()
                             .multilineTextAlignment(.center)
@@ -188,33 +145,7 @@ struct TimerView: View {
                     .cornerRadius(24)
                     .shadow(color: Color.blue.opacity(0.3), radius: 20, x: 0, y: 10)
                     
-                    VStack(spacing: 8) {
-                        Text("Up Next")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.8))
-                            .textCase(.uppercase)
-                            .tracking(1.0)
-                        
-                        if setsRemaining > 0 && currentSetNumber < restTimes.count {
-                            Text(formatTime(restTimes[currentSetNumber]))
-                                .font(.system(size: 48, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                                .monospacedDigit()
-                        } else if workoutCompleted {
-                            Text("")
-                                .font(.system(size: 48, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                        } else if !restTimes.isEmpty && setsRemaining == 0{
-                            Text("Done!")
-                                .font(.system(size: 48, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                        } else {
-                            Text("Click the gear icon to adjust your workout")
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                                .multilineTextAlignment(.center)
-                        }
-                    }
+                    UpNextView(timerManager: timerManager)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
                     .padding(.horizontal, 20)
@@ -237,26 +168,26 @@ struct TimerView: View {
                         Toggle("5s Countdown?", isOn: $countdownOn)
                             .padding(.bottom)
                             .frame(maxWidth: 200)
-                            .disabled(!restTimes.isEmpty)
-                            .foregroundStyle(!restTimes.isEmpty ? .gray : colorScheme == .light ? .black : .white)
+                            .disabled(!timerManager.restTimes.isEmpty)
+                            .foregroundStyle(toggleForegroundColor)
                         
                         HStack(spacing: 16) {
                             Button {
                                 if countdownOn && !hasCountdownRun {
                                     startCountdown()
-                                } else if isTimerRunning {
-                                    pauseTimer()
-                                    AnalyticsManager.shared.trackTimerPaused(currentSet: currentSetNumber, secondsRemaining: currentRestTime)
+                                } else if timerManager.isTimerRunning {
+                                    timerManager.pauseTimer()
+                                    AnalyticsManager.shared.trackTimerPaused(currentSet: timerManager.currentSetNumber, secondsRemaining: timerManager.currentRestTime)
                                     startClicked = false
                                 } else {
-                                    startTimer()
+                                    timerManager.startTimer()
                                     startClicked = true
                                 }
                             } label: {
                                 HStack(spacing: 8) {
-                                    Image(systemName: isTimerRunning ? "pause.fill" : "play.fill")
+                                    Image(systemName: timerManager.isTimerRunning ? "pause.fill" : "play.fill")
                                         .font(.system(size: 18, weight: .semibold))
-                                    Text(workoutCompleted ? "Nice Work!" : isTimerRunning ? "Pause" : restTimes.isEmpty ? "Start" : "Resume")
+                                    Text(buttonText)
                                         .font(.system(size: 17, weight: .semibold))
                                 }
                                 .foregroundStyle(.white)
@@ -277,8 +208,11 @@ struct TimerView: View {
                             }
                             
                             Button {
-                                AnalyticsManager.shared.trackTimerReset(currentSet: currentSetNumber)
-                                resetTimer()
+                                AnalyticsManager.shared.trackTimerReset(currentSet: timerManager.currentSetNumber)
+                                timerManager.resetTimer()
+                                hasCountdownRun = false
+                                startClicked = false
+                                isCountingDown = false
                             } label: {
                                 HStack(spacing: 8) {
                                     Image(systemName: "arrow.counterclockwise")
@@ -323,30 +257,26 @@ struct TimerView: View {
                 }
             }
             .sheet(isPresented: $settingsShown) {
-                TimerSettingsView(appliedSets: $appliedSets, draftSets: $draftSets, appliedMinRest: $appliedMinRest, draftMinRest: $draftMinRest, appliedMaxRest: $appliedMaxRest, draftMaxRest: $draftMaxRest)
+                TimerSettingsView(timerManager: timerManager, draftSets: $draftSets, draftMinRest: $draftMinRest, draftMaxRest: $draftMaxRest)
                     .presentationDetents([.height(300)])
             }
-            .onDisappear {
-                timer?.invalidate()
-                timer = nil
-            }
-            .onChange(of: appliedSets) {
-                if isTimerRunning {
-                    resetTimer()
+            .onChange(of: timerManager.appliedSets) {
+                if timerManager.isTimerRunning {
+                    timerManager.resetTimer()
                 }
             }
-            .onChange(of: appliedMinRest) {
-                if isTimerRunning {
-                    resetTimer()
+            .onChange(of: timerManager.appliedMinRest) {
+                if timerManager.isTimerRunning {
+                    timerManager.resetTimer()
                 }
             }
-            .onChange(of: appliedMaxRest) {
-                if isTimerRunning {
-                    resetTimer()
+            .onChange(of: timerManager.appliedMaxRest) {
+                if timerManager.isTimerRunning {
+                    timerManager.resetTimer()
                 }
             }
             .overlay(alignment: .top) {
-                Text("Set \(currentSetNumber)/\(appliedSets)")
+                Text("Set \(timerManager.currentSetNumber)/\(timerManager.appliedSets)")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.primary)
                     .padding(.horizontal, 20)
@@ -377,6 +307,11 @@ struct TimerView: View {
                 }
             }
         }
+        .onChange(of: timerManager.workoutCompleted) { _, newValue in
+            if newValue {
+                confettiCannon += 1
+            }
+        }
         .onAppear {
             AnalyticsManager.shared.trackScreenView("Timer")
         }
@@ -385,11 +320,9 @@ struct TimerView: View {
 
 struct TimerSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @Binding var appliedSets: Int
+    @ObservedObject var timerManager: TimerManager
     @Binding var draftSets: Int
-    @Binding var appliedMinRest: Int
     @Binding var draftMinRest: Int
-    @Binding var appliedMaxRest: Int
     @Binding var draftMaxRest: Int
     
     
@@ -450,9 +383,9 @@ struct TimerSettingsView: View {
                         .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                 )
                 .onTapGesture {
-                    appliedSets = draftSets
-                    appliedMinRest = draftMinRest
-                    appliedMaxRest = draftMaxRest
+                    timerManager.appliedSets = draftSets
+                    timerManager.appliedMinRest = draftMinRest
+                    timerManager.appliedMaxRest = draftMaxRest
                     dismiss()
                 }
         }
@@ -461,7 +394,42 @@ struct TimerSettingsView: View {
     }
 }
 
+struct UpNextView: View {
+    @ObservedObject var timerManager: TimerManager
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Up Next")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.8))
+                .textCase(.uppercase)
+                .tracking(1.0)
+
+            if timerManager.setsRemaining > 0 && timerManager.currentSetNumber < timerManager.restTimes.count {
+                Text(timerManager.formatTime(timerManager.restTimes[timerManager.currentSetNumber]))
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .monospacedDigit()
+            } else if timerManager.workoutCompleted {
+                Text("")
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+            } else if !timerManager.restTimes.isEmpty && timerManager.setsRemaining == 0 {
+                Text("Done!")
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+            } else {
+                Text("Click the gear icon to adjust your workout")
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+            }
+        }
+    }
+}
+
 #Preview {
     TimerView()
+        .environmentObject(TimerManager())
 }
 
