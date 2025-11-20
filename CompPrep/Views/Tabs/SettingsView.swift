@@ -28,47 +28,71 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack{
             List {
-                Button{
-                    isCustomerCenterPresented = true
-                    AnalyticsManager.shared.trackCustomerSupportOpened()
-                } label: {
-                    HStack {
-                        Text("Customer Support")
-                            .foregroundStyle(colorScheme == .light ? .black : .white)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.gray.opacity(0.6))
-                            .font(.system(size: 13))
-                            .bold()
+                Section("Support") {
+                    Button{
+                        isCustomerCenterPresented = true
+                        AnalyticsManager.shared.trackCustomerSupportOpened()
+                    } label: {
+                        HStack {
+                            Text("Customer Support")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
                     }
-                }
-                
-                Button{
-                    feedbackPresented = true
-                    AnalyticsManager.shared.trackFeedbackOpened()
-                } label: {
-                    HStack {
-                        Text("Submit Feedback")
-                            .foregroundStyle(colorScheme == .light ? .black : .white)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.gray.opacity(0.6))
-                            .font(.system(size: 13))
-                            .bold()
+                    
+                    Button{
+                        feedbackPresented = true
+                        AnalyticsManager.shared.trackFeedbackOpened()
+                    } label: {
+                        HStack {
+                            Text("Submit Feedback")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
                     }
-                }
-                
-                Button {
-                    emailListPresented = true
-                } label: {
-                    HStack {
-                        Text("Sign Up To Recieve Updates")
-                            .foregroundStyle(colorScheme == .light ? .black : .white)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.gray.opacity(0.6))
-                            .font(.system(size: 13))
-                            .bold()
+                    
+                    Link(destination: URL(string: "https://www.meetcal.app/compprep-privacy")!) {
+                        HStack {
+                            Text("Privacy Policy")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
+                    }
+                    
+                    Link(destination: URL(string: "https://www.meetcal.app/compprep-terms")!) {
+                        HStack {
+                            Text("Terms of Service")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
+                    }
+                    
+                    Link(destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!) {
+                        HStack {
+                            Text("User Agreement")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
                     }
                 }
 
@@ -84,7 +108,7 @@ struct SettingsView: View {
 //                    }
 //                }
                 
-                Section {
+                Section("App Controls") {
                     Toggle("Dice Animation", isOn: $diceAnimation)
                         .simultaneousGesture(TapGesture().onEnded {
                             AnalyticsManager.shared.trackDiceAnimationChanged(isOn: diceAnimation)
@@ -99,8 +123,37 @@ struct SettingsView: View {
                         AnalyticsManager.shared.trackHomeScreenChanged(screen: newValue)
                     }
                 }
+                
+                Section("Other Things") {
+                    Button {
+                        emailListPresented = true
+                    } label: {
+                        HStack {
+                            Text("Sign Up To Recieve Updates")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
+                    }
+                    
+                    Link(destination: URL(string: "https://github.com/memohnsen/CompPrep")!) {
+                        HStack {
+                            Text("Open Source Code on GitHub")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
+                    }
+                }
             }
             .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $isCustomerCenterPresented) {
                 CustomerCenterView()
             }

@@ -55,7 +55,7 @@ struct MainAppView: View {
                 if !hasSeenOnboarding {
                     OnboardingView()
                     //MARK: - NEEDS ! FOR PROD, REMOVED FOR DEV SIM
-                } else if customerManager.hasProAccess {
+                } else if !customerManager.hasProAccess {
                     PaywallView()
                         .onRestoreCompleted { _ in
                             Task {
