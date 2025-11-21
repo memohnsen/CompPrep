@@ -51,37 +51,39 @@ struct MainAppView: View {
 
     var body: some View {
         ZStack {
-            Group {
-                if !hasSeenOnboarding {
-                    OnboardingView()
-                    //MARK: - NEEDS ! FOR PROD, REMOVED FOR DEV SIM
-                } else if !customerManager.hasProAccess {
-                    PaywallView()
-                        .onRestoreCompleted { _ in
-                            Task {
-                                await customerManager.fetchCustomerInfo()
-                            }
+            if !hasSeenOnboarding {
+                OnboardingView()
+                    .onAppear {
+                        customerManager.setModelContext(modelContext)
+                    }
+            } else {
+                ContentView()
+                    .environmentObject(timerManager)
+                    .environmentObject(customerManager)
+                    .presentPaywallIfNeeded { customerInfo in
+                        return customerInfo.entitlements.active.isEmpty
+                    } purchaseCompleted: { customerInfo in
+                        Task { @MainActor in
+                            await customerManager.fetchCustomerInfo()
+                            print("🔐 After purchase: hasProAccess = \(customerManager.hasProAccess)")
                         }
-                        .onPurchaseCompleted { _ in
-                            Task {
-                                await customerManager.fetchCustomerInfo()
-                            }
+                    } restoreCompleted: { customerInfo in
+                        Task { @MainActor in
+                            await customerManager.fetchCustomerInfo()
+                            print("🔐 After restore: hasProAccess = \(customerManager.hasProAccess)")
                         }
-                } else {
-                    ContentView()
-                        .environmentObject(timerManager)
-                }
-            }
-            .onAppear {
-                customerManager.setModelContext(modelContext)
-                Task {
-                    await customerManager.fetchCustomerInfo()
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshSubscription"))) { _ in
-                Task {
-                    await customerManager.fetchCustomerInfo()
-                }
+                    }
+                    .onAppear {
+                        customerManager.setModelContext(modelContext)
+                        Task {
+                            await customerManager.fetchCustomerInfo()
+                        }
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshSubscription"))) { _ in
+                        Task {
+                            await customerManager.fetchCustomerInfo()
+                        }
+                    }
             }
 
             if showLaunchScreen {

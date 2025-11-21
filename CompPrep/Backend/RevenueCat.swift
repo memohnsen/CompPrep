@@ -10,6 +10,7 @@ import Foundation
 import Combine
 import SwiftData
 
+@MainActor
 class CustomerInfoManager: ObservableObject {
     @Published var customerInfo: CustomerInfo?
     @Published var isLoading = false
@@ -61,6 +62,11 @@ class CustomerInfoManager: ObservableObject {
 
             let wasProUser = hasProAccess
             let currentHasAccess = !customerInfo.entitlements.active.isEmpty
+
+            #if DEBUG
+            print("🔐 Customer Info Updated: hasProAccess = \(currentHasAccess)")
+            print("🔐 Active entitlements: \(customerInfo.entitlements.active.keys)")
+            #endif
 
             if currentHasAccess && !wasProUser {
                 AnalyticsManager.shared.trackSubscriptionStarted(tier: "pro")
