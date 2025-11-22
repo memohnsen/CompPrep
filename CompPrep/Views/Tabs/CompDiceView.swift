@@ -7,17 +7,22 @@
 
 import SwiftUI
 import SwiftData
+import RevenueCatUI
+import RevenueCat
 
 struct CompDiceView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var diceOptionsEntities: [DiceOptionsEntity]
     @AppStorage("diceAnimation") var diceAnimation: Bool = true
+    @EnvironmentObject var customerManager: CustomerInfoManager
 
     @State private var settingsShown: Bool = false
     @State private var rolledText: String = "Power 60% before your next attempt"
     @State private var isRolling: Bool = false
     @State private var rotationAngle: Double = 0
     @State private var displayText: String = ""
+    
+    @State private var displayPaywall: Bool = true
 
     private var diceOptions: [String] {
         if let entity = diceOptionsEntities.first {
@@ -134,13 +139,17 @@ struct CompDiceView: View {
                     .scaleEffect(isRolling ? 0.95 : 1.0)
                     
                     Button{
-                        rollDice()
-                        AnalyticsManager.shared.trackDiceRolled(optionCount: diceOptions.count, resultText: isRolling ? displayText : rolledText)
+                        if customerManager.hasProAccess {
+                            rollDice()
+                            AnalyticsManager.shared.trackDiceRolled(optionCount: diceOptions.count, resultText: isRolling ? displayText : rolledText)
+                        } else {
+                            displayPaywall = true
+                        }
                     } label: {
                         HStack(spacing: 10) {
                             Image(systemName: "dice.fill")
                                 .font(.system(size: 18, weight: .semibold))
-                            Text("Roll Dice")
+                            Text(customerManager.hasProAccess ? "Roll Dice" : "Subscribe to Roll Dice")
                                 .font(.system(size: 17, weight: .semibold))
                         }
                         .foregroundStyle(.white)
@@ -175,6 +184,9 @@ struct CompDiceView: View {
                             .foregroundStyle(.blue)
                     }
                 }
+            }
+            .sheet(isPresented: $displayPaywall) {
+                PaywallView()
             }
             .sheet(isPresented: $settingsShown) {
                 if let entity = diceOptionsEntities.first{
@@ -249,4 +261,5 @@ struct CompDiceSettingsView: View {
 #Preview {
      CompDiceView()
          .modelContainer(for: DiceOptionsEntity.self, inMemory: true)
+         .environmentObject(CustomerInfoManager())
  }

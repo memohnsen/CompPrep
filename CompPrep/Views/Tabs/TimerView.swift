@@ -8,10 +8,13 @@
 import SwiftUI
 import Combine
 import ConfettiSwiftUI
+import RevenueCat
+import RevenueCatUI
 
 struct TimerView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var timerManager: TimerManager
+    @EnvironmentObject var customerManager: CustomerInfoManager
     @State private var settingsShown: Bool = false
     @State private var startClicked: Bool = false
     @State private var countdownOn: Bool = false
@@ -25,6 +28,8 @@ struct TimerView: View {
     @State private var countdown: Int = 5
     @State private var countdownScale: Double = 0
     @State private var confettiCannon: Int = 0
+    
+    @State private var displayPaywall: Bool = false
     
     
     func startCountdown() {
@@ -63,12 +68,16 @@ struct TimerView: View {
     }
     
     var displayText: String {
-        if timerManager.workoutCompleted {
-            return "Completed!"
-        } else if !timerManager.restTimes.isEmpty {
-            return timerManager.formatTime(timerManager.currentRestTime)
+        if customerManager.hasProAccess {
+            if timerManager.workoutCompleted {
+                return "Completed!"
+            } else if !timerManager.restTimes.isEmpty {
+                return timerManager.formatTime(timerManager.currentRestTime)
+            } else {
+                return "Press Start To Begin!"
+            }
         } else {
-            return "Press Start To Begin!"
+            return "Subscribe To Access"
         }
     }
     
@@ -173,15 +182,19 @@ struct TimerView: View {
                         
                         HStack(spacing: 16) {
                             Button {
-                                if countdownOn && !hasCountdownRun {
-                                    startCountdown()
-                                } else if timerManager.isTimerRunning {
-                                    timerManager.pauseTimer()
-                                    AnalyticsManager.shared.trackTimerPaused(currentSet: timerManager.currentSetNumber, secondsRemaining: timerManager.currentRestTime)
-                                    startClicked = false
+                                if customerManager.hasProAccess {
+                                    if countdownOn && !hasCountdownRun {
+                                        startCountdown()
+                                    } else if timerManager.isTimerRunning {
+                                        timerManager.pauseTimer()
+                                        AnalyticsManager.shared.trackTimerPaused(currentSet: timerManager.currentSetNumber, secondsRemaining: timerManager.currentRestTime)
+                                        startClicked = false
+                                    } else {
+                                        timerManager.startTimer()
+                                        startClicked = true
+                                    }
                                 } else {
-                                    timerManager.startTimer()
-                                    startClicked = true
+                                    displayPaywall = true
                                 }
                             } label: {
                                 HStack(spacing: 8) {
@@ -255,6 +268,9 @@ struct TimerView: View {
                             .foregroundStyle(.blue)
                     }
                 }
+            }
+            .sheet(isPresented: $displayPaywall) {
+                PaywallView()
             }
             .sheet(isPresented: $settingsShown) {
                 TimerSettingsView(timerManager: timerManager, draftSets: $draftSets, draftMinRest: $draftMinRest, draftMaxRest: $draftMaxRest)
@@ -431,5 +447,6 @@ struct UpNextView: View {
 #Preview {
     TimerView()
         .environmentObject(TimerManager())
+        .environmentObject(CustomerInfoManager())
 }
 
