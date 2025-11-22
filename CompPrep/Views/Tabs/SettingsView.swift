@@ -59,6 +59,32 @@ struct SettingsView: View {
                         }
                     }
                     
+                    Button {
+                        emailListPresented = true
+                    } label: {
+                        HStack {
+                            Text("Sign Up To Recieve Updates")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
+                    }
+                    
+                    Link(destination: URL(string: "https://github.com/memohnsen/CompPrep")!) {
+                        HStack {
+                            Text("Open Source Code on GitHub")
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.gray.opacity(0.6))
+                                .font(.system(size: 13))
+                                .bold()
+                        }
+                    }
+                    
                     Link(destination: URL(string: "https://www.meetcal.app/compprep-privacy")!) {
                         HStack {
                             Text("Privacy Policy")
@@ -121,34 +147,6 @@ struct SettingsView: View {
                     }
                     .onChange(of: selectedHomeScreen) { _, newValue in
                         AnalyticsManager.shared.trackHomeScreenChanged(screen: newValue)
-                    }
-                }
-                
-                Section("Other Things") {
-                    Button {
-                        emailListPresented = true
-                    } label: {
-                        HStack {
-                            Text("Sign Up To Recieve Updates")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
-                    }
-                    
-                    Link(destination: URL(string: "https://github.com/memohnsen/CompPrep")!) {
-                        HStack {
-                            Text("Open Source Code on GitHub")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
                     }
                 }
             }
