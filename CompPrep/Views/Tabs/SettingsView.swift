@@ -17,137 +17,129 @@ struct SettingsView: View {
     @State private var feedbackPresented: Bool = false
     @State private var emailListPresented: Bool = false
     
-    static var appVersion: String? {
+    var appVersion: String? {
         return Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
     }
     
     let homeScreenOptions: [String] = ["Comp Dice", "Timer"]
-    
-    
 
     var body: some View {
-        NavigationStack{
-            List {
-                Section("Support") {
-                    Button{
-                        isCustomerCenterPresented = true
-                        AnalyticsManager.shared.trackCustomerSupportOpened()
-                    } label: {
-                        HStack {
-                            Text("Customer Support")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
-                    }
-                    
-                    Button{
-                        feedbackPresented = true
-                        AnalyticsManager.shared.trackFeedbackOpened()
-                    } label: {
-                        HStack {
-                            Text("Submit Feedback")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
-                    }
-                    
-                    Button {
-                        emailListPresented = true
-                    } label: {
-                        HStack {
-                            Text("Sign Up To Recieve Updates")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
-                    }
-                    
-                    Link(destination: URL(string: "https://github.com/memohnsen/CompPrep")!) {
-                        HStack {
-                            Text("Open Source Code on GitHub")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
-                    }
-                    
-                    Link(destination: URL(string: "https://www.meetcal.app/compprep-privacy")!) {
-                        HStack {
-                            Text("Privacy Policy")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
-                    }
-                    
-                    Link(destination: URL(string: "https://www.meetcal.app/compprep-terms")!) {
-                        HStack {
-                            Text("Terms of Service")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
-                    }
-                    
-                    Link(destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!) {
-                        HStack {
-                            Text("User Agreement")
-                                .foregroundStyle(colorScheme == .light ? .black : .white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.gray.opacity(0.6))
-                                .font(.system(size: 13))
-                                .bold()
-                        }
-                    }
-                }
-
-//                Link(destination: URL(string: "FILL IN LATER")!) {
-//                    HStack {
-//                        Text("Leave A Review")
-//                            .foregroundStyle(colorScheme == .light ? .black : .white)
-//                        Spacer()
-//                        Image(systemName: "chevron.right")
-//                            .foregroundStyle(.gray.opacity(0.6))
-//                            .font(.system(size: 13))
-//                            .bold()
-//                    }
-//                }
+        NavigationStack {
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
                 
-                Section("App Controls") {
-                    Toggle("Dice Animation", isOn: $diceAnimation)
-                        .simultaneousGesture(TapGesture().onEnded {
-                            AnalyticsManager.shared.trackDiceAnimationChanged(isOn: diceAnimation)
-                        })
-                    
-                    Picker("Home Screen", selection: $selectedHomeScreen) {
-                        ForEach(homeScreenOptions, id: \.self) {
-                            Text($0)
+                ScrollView {
+                    VStack {
+                        VStack {
+                            Button {
+                                isCustomerCenterPresented = true
+                                AnalyticsManager.shared.trackCustomerSupportOpened()
+                            } label: {
+                                HStack {
+                                    Text("Customer Support")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            }
+                            
+                            Divider()
+                                .padding(.vertical, 8)
+                            
+                            Button {
+                                feedbackPresented = true
+                                AnalyticsManager.shared.trackFeedbackOpened()
+                            } label: {
+                                HStack {
+                                    Text("Submit Feedback")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            }
+                            
+                            Divider()
+                                .padding(.vertical, 8)
+                            
+                            Button {
+                                emailListPresented = true
+                            } label: {
+                                HStack {
+                                    Text("Sign Up To Receive Updates")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            }
+                            
+                            Divider()
+                                .padding(.vertical, 8)
+                            
+                            Link(destination: URL(string: "https://github.com/memohnsen/CompPrep")!) {
+                                HStack {
+                                    Text("Open Source Code on GitHub")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            }
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(32)
+                        .padding(.bottom, 8)
+                        
+                        VStack {
+                            Toggle("Dice Animation", isOn: $diceAnimation)
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    AnalyticsManager.shared.trackDiceAnimationChanged(isOn: diceAnimation)
+                                })
+                                .padding(.top, -2)
+
+                            
+                            Divider()
+                                .padding(.vertical, 2)
+                            
+                            HStack {
+                                Text("Home Screen")
+                                Spacer()
+                                Picker("Home Screen", selection: $selectedHomeScreen) {
+                                    ForEach(homeScreenOptions, id: \.self) {
+                                        Text($0)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                .labelsHidden()
+                            }
+                            .onChange(of: selectedHomeScreen) { _, newValue in
+                                AnalyticsManager.shared.trackHomeScreenChanged(screen: newValue)
+                            }
+                            .padding(.bottom, -6)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(32)
+                        
+                        VStack {
+                            HStack {
+                                Link("Privacy Policy", destination: URL(string: "https://www.meetcal.app/compprep-privacy")!)
+                                Text("•")
+                                Link("Terms of Service", destination: URL(string: "https://www.meetcal.app/compprep-terms")!)
+                                Text("•")
+                                Link("User Agreement", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                            }
+                            
+                            Text("CompPrep Version: \(appVersion ?? "1.0")")
+                                .secondaryText()
+                                .padding(.top)
+                        }
+                        .font(.system(size: 14))
+                        .padding(.top)
                     }
-                    .onChange(of: selectedHomeScreen) { _, newValue in
-                        AnalyticsManager.shared.trackHomeScreenChanged(screen: newValue)
-                    }
+                    .padding(.horizontal)
                 }
             }
             .navigationTitle("Settings")
@@ -160,11 +152,6 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $emailListPresented) {
                 EmailListView(isPresented: $emailListPresented)
-            }
-            .overlay(alignment: .bottom) {
-                Text("CompPrep Version: \(String(describing: SettingsView.appVersion!))")
-                    .secondaryText()
-                    .padding(.bottom, 40)
             }
         }
         .onAppear {
