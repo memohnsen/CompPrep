@@ -38,4 +38,7 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: DiceOptionsEntity.self, inMemory: true)
+        .environmentObject(CustomerInfoManager())
+        .environmentObject(TimerManager())
 }

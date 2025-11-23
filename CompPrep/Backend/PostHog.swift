@@ -83,6 +83,12 @@ class AnalyticsManager {
         PostHogSDK.shared.capture("onboarding_skipped")
     }
     
+    func trackNewsletterSignup(source: String) {
+        PostHogSDK.shared.capture("newsletter_signup", properties: [
+            "source": source
+        ])
+    }
+    
     // MARK: - Monetization
     func trackPaywallViewed(triggerLocation: String) {
         PostHogSDK.shared.capture("paywall_viewed", properties: [
