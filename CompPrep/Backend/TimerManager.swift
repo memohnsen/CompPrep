@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 import UIKit
+import ActivityKit
 
 class TimerManager: ObservableObject {
     @Published var isTimerRunning: Bool = false
@@ -20,6 +21,7 @@ class TimerManager: ObservableObject {
     @Published var appliedMaxRest: Int = 8
     
     private var backgroundTime: Date?
+    private var currentActivity: Activity<CompPrepLiveActionAttributes>?
     
     init() {
         setupBackgroundHandling()
@@ -49,6 +51,9 @@ class TimerManager: ObservableObject {
 
         timer?.invalidate()
         isTimerRunning = true
+        
+        // Start the Live Activity
+        startLiveActivity()
 
         if trackAnalytics {
             AnalyticsManager.shared.trackTimerStarted(withCountdown: false, sets: appliedSets, minRestMin: appliedMinRest, maxRestMin: appliedMaxRest)
@@ -58,6 +63,8 @@ class TimerManager: ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             self.currentRestTime -= 1
+            
+            self.updateLiveActivity()
 
             if self.currentRestTime <= 0 {
                 if self.currentSetNumber >= self.appliedSets {
@@ -66,6 +73,7 @@ class TimerManager: ObservableObject {
                     self.isTimerRunning = false
                     self.timer?.invalidate()
                     self.timer = nil
+                    self.endLiveActivity()
                 } else {
                     self.currentSetNumber += 1
                     self.currentRestTime = self.restTimes[self.currentSetNumber - 1]
@@ -87,6 +95,7 @@ class TimerManager: ObservableObject {
         currentSetNumber = 1
         workoutCompleted = false
         restTimes = []
+        endLiveActivity()
     }
     
     func formatTime(_ seconds: Int) -> String {
@@ -137,6 +146,59 @@ class TimerManager: ObservableObject {
                     currentRestTime = restTimes[currentSetNumber - 1] - remainingElapsed
                 }
             }
+        }
+    }
+    
+    // MARK: - Live Activity
+    
+    func startLiveActivity() {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            print("Live Activities are not enabled")
+            return
+        }
+        
+        endLiveActivity()
+        
+        let attributes = CompPrepLiveActionAttributes(totalSets: appliedSets)
+        let contentState = CompPrepLiveActionAttributes.ContentState(
+            currentSetNumber: currentSetNumber,
+            currentRestTime: currentRestTime,
+            totalRestTime: restTimes[currentSetNumber - 1],
+            nextRestTime: currentSetNumber < appliedSets ? restTimes[currentSetNumber] : nil
+        )
+        
+        do {
+            currentActivity = try Activity.request(
+                attributes: attributes,
+                content: .init(state: contentState, staleDate: nil)
+            )
+            print("Live Activity started")
+        } catch {
+            print("Failed to start Live Activity: \(error)")
+        }
+    }
+    
+    func updateLiveActivity() {
+        guard let activity = currentActivity else { return }
+        
+        let contentState = CompPrepLiveActionAttributes.ContentState(
+            currentSetNumber: currentSetNumber,
+            currentRestTime: currentRestTime,
+            totalRestTime: restTimes[currentSetNumber - 1],
+            nextRestTime: currentSetNumber < appliedSets ? restTimes[currentSetNumber] : nil
+        )
+        
+        Task {
+            await activity.update(.init(state: contentState, staleDate: nil))
+        }
+    }
+    
+    func endLiveActivity() {
+        guard let activity = currentActivity else { return }
+        
+        Task {
+            await activity.end(nil, dismissalPolicy: .immediate)
+            currentActivity = nil
         }
     }
 }
