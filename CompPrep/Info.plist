@@ -14,7 +14,5 @@
 	<string>sb_publishable_SQ-w0vWM9q3r5eF6PCAFCQ_e12p8AmT</string>
 	<key>SUPABASE_URL</key>
 	<string>https:/$()/ztziuiiharxtvzitwzfv.supabase.co</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 </dict>
 </plist>
