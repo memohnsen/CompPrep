@@ -271,6 +271,16 @@ struct TimerView: View {
             }
             .sheet(isPresented: $displayPaywall) {
                 PaywallView()
+                    .onPurchaseCompleted { customerInfo in
+                        print("🔐 TimerView: Purchase completed!")
+                        customerManager.updateFromCustomerInfo(customerInfo)
+                        displayPaywall = false
+                    }
+                    .onRestoreCompleted { customerInfo in
+                        print("🔐 TimerView: Restore completed!")
+                        customerManager.updateFromCustomerInfo(customerInfo)
+                        displayPaywall = false
+                    }
             }
             .sheet(isPresented: $settingsShown) {
                 TimerSettingsView(timerManager: timerManager, draftSets: $draftSets, draftMinRest: $draftMinRest, draftMaxRest: $draftMaxRest)

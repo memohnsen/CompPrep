@@ -8,7 +8,6 @@
 import SwiftUI
 import SwiftData
 import RevenueCat
-import RevenueCatUI
 
 @main
 struct CompPrepApp: App {
@@ -53,32 +52,11 @@ struct MainAppView: View {
         ZStack {
             if !hasSeenOnboarding {
                 OnboardingView()
-                    .onAppear {
-                        customerManager.setModelContext(modelContext)
-                    }
+                    .environmentObject(customerManager)
             } else {
                 ContentView()
                     .environmentObject(timerManager)
                     .environmentObject(customerManager)
-                    .presentPaywallIfNeeded { customerInfo in
-                        return customerInfo.entitlements.active.isEmpty
-                    } purchaseCompleted: { customerInfo in
-                        Task { @MainActor in
-                            await customerManager.fetchCustomerInfo()
-                            print("🔐 After purchase: hasProAccess = \(customerManager.hasProAccess)")
-                        }
-                    } restoreCompleted: { customerInfo in
-                        Task { @MainActor in
-                            await customerManager.fetchCustomerInfo()
-                            print("🔐 After restore: hasProAccess = \(customerManager.hasProAccess)")
-                        }
-                    }
-                    .onAppear {
-                        customerManager.setModelContext(modelContext)
-                        Task {
-                            await customerManager.fetchCustomerInfo()
-                        }
-                    }
                     .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshSubscription"))) { _ in
                         Task {
                             await customerManager.fetchCustomerInfo()
@@ -93,6 +71,13 @@ struct MainAppView: View {
             }
         }
         .onAppear {
+            // Set context and fetch ONCE at the root level
+            customerManager.setModelContext(modelContext)
+            Task {
+                await customerManager.fetchCustomerInfo()
+            }
+            
+            // Dismiss launch screen after delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeOut(duration: 0.3)) {
                     showLaunchScreen = false

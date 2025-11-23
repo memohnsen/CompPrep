@@ -22,7 +22,7 @@ struct CompDiceView: View {
     @State private var rotationAngle: Double = 0
     @State private var displayText: String = ""
     
-    @State private var displayPaywall: Bool = true
+    @State private var displayPaywall: Bool = false
 
     private var diceOptions: [String] {
         if let entity = diceOptionsEntities.first {
@@ -187,6 +187,16 @@ struct CompDiceView: View {
             }
             .sheet(isPresented: $displayPaywall) {
                 PaywallView()
+                    .onPurchaseCompleted { customerInfo in
+                        print("🔐 CompDiceView: Purchase completed!")
+                        customerManager.updateFromCustomerInfo(customerInfo)
+                        displayPaywall = false
+                    }
+                    .onRestoreCompleted { customerInfo in
+                        print("🔐 CompDiceView: Restore completed!")
+                        customerManager.updateFromCustomerInfo(customerInfo)
+                        displayPaywall = false
+                    }
             }
             .sheet(isPresented: $settingsShown) {
                 if let entity = diceOptionsEntities.first{

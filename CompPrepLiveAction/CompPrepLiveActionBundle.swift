@@ -11,7 +11,6 @@ import SwiftUI
 @main
 struct CompPrepLiveActionBundle: WidgetBundle {
     var body: some Widget {
-        CompPrepLiveAction()
         CompPrepLiveActionLiveActivity()
     }
 }
