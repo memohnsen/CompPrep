@@ -52,7 +52,6 @@ class TimerManager: ObservableObject {
         timer?.invalidate()
         isTimerRunning = true
         
-        // Start the Live Activity
         startLiveActivity()
 
         if trackAnalytics {
@@ -60,7 +59,7 @@ class TimerManager: ObservableObject {
         }
 
         //MARK: - adjust here to make timer countdown faster to test transitions, should be 1.0 for prod
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             self.currentRestTime -= 1
             

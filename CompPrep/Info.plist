@@ -14,5 +14,14 @@
 	<string>sb_publishable_SQ-w0vWM9q3r5eF6PCAFCQ_e12p8AmT</string>
 	<key>SUPABASE_URL</key>
 	<string>https:/$()/ztziuiiharxtvzitwzfv.supabase.co</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>CompPrep needs access to save your workout achievements to your photo library.</string>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>instagram</string>
+        <string>instagram-stories</string>
+    </array>
+	<key>photo</key>
+	<string></string>
 </dict>
 </plist>

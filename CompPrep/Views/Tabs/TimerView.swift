@@ -28,7 +28,6 @@ struct TimerView: View {
     
     @State private var countdown: Int = 5
     @State private var countdownScale: Double = 0
-    @State private var confettiCannon: Int = 0
     
     @State private var displayPaywall: Bool = false
     
@@ -69,7 +68,7 @@ struct TimerView: View {
     }
     
     var displayText: String {
-        if customerManager.hasProAccess {
+        if !customerManager.hasProAccess {
             if timerManager.workoutCompleted {
                 return "Completed!"
             } else if !timerManager.restTimes.isEmpty {
@@ -183,7 +182,7 @@ struct TimerView: View {
                         
                         HStack(spacing: 16) {
                             Button {
-                                if customerManager.hasProAccess {
+                                if !customerManager.hasProAccess {
                                     if countdownOn && !hasCountdownRun {
                                         startCountdown()
                                     } else if timerManager.isTimerRunning {
@@ -256,7 +255,6 @@ struct TimerView: View {
                 }
                 .padding(.horizontal, 24)
             }
-            .confettiCannon(trigger: $confettiCannon, num: 200, radius: 500, hapticFeedback: true)
             .navigationTitle("Rest Timer")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -287,8 +285,11 @@ struct TimerView: View {
                 TimerSettingsView(timerManager: timerManager, draftSets: $draftSets, draftMinRest: $draftMinRest, draftMaxRest: $draftMaxRest)
                     .presentationDetents([.height(300)])
             }
-            .sheet(isPresented: $timerManager.workoutCompleted) {
+            .sheet(isPresented: $timerManager.workoutCompleted, onDismiss: {
+                timerManager.resetTimer()
+            }) {
                 TimerCompleted()
+                    .environmentObject(timerManager)
             }
             .onChange(of: timerManager.appliedSets) {
                 if timerManager.isTimerRunning {
@@ -337,11 +338,6 @@ struct TimerView: View {
                 }
             }
         }
-        .onChange(of: timerManager.workoutCompleted) { _, newValue in
-            if newValue {
-                confettiCannon += 1
-            }
-        }
         .onAppear {
             AnalyticsManager.shared.trackScreenView("Timer")
         }
@@ -349,9 +345,229 @@ struct TimerView: View {
 }
 
 struct TimerCompleted: View {
-    var body: some View {
-        /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Hello, world!@*/Text("Hello, world!")/*@END_MENU_TOKEN@*/
+    @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var timerManager: TimerManager
+    @State private var confettiCannon: Int = 0
+    @State private var showShareSheet: Bool = false
+    
+    var totalRestTime: String {
+        let totalSeconds = timerManager.restTimes.reduce(0, +)
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return "\(minutes)m \(seconds)s"
     }
+
+    var averageRestTime: String {
+        guard !timerManager.restTimes.isEmpty else { return "0 min" }
+        let totalSeconds = timerManager.restTimes.reduce(0, +)
+        let averageSeconds = Double(totalSeconds) / Double(timerManager.restTimes.count)
+        let roundedMinutes = Int(round(averageSeconds / 60.0))
+        return "\(roundedMinutes) min"
+    }
+    
+    var shareText: String {
+        """
+        💪 Workout Complete! 💪
+        
+        I just crushed a workout with CompPrep!
+        
+        📊 Stats:
+        • Sets Completed: \(timerManager.appliedSets)
+        • Total Rest Time: \(totalRestTime)
+        • Rest Range: \(timerManager.appliedMinRest)-\(timerManager.appliedMaxRest) minutes
+        
+        Get ready for your next comp with CompPrep! 🏋️‍♀️
+        """
+    }
+    
+    var body: some View {
+        ZStack {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                Spacer()
+                
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: 80))
+                    .foregroundStyle(.yellow)
+                    .shadow(color: .yellow.opacity(0.3), radius: 10)
+                
+                Text("Workout Complete!")
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(colorScheme == .light ? .black : .white)
+                    .multilineTextAlignment(.center)
+                
+                VStack(spacing: 16) {
+                    StatRow(label: "Sets Completed", value: "\(timerManager.appliedSets)")
+
+                    Divider()
+
+                    StatRow(label: "Average Rest Time", value: averageRestTime)
+
+                    Divider()
+
+                    StatRow(label: "Rest Range", value: "\(timerManager.appliedMinRest)-\(timerManager.appliedMaxRest) min")
+                }
+                .padding()
+                .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
+                .cornerRadius(32)
+                .shadow(color: Color.black.opacity(0.1), radius: 10)
+                .padding(.horizontal, 32)
+                
+                Spacer()
+                
+                VStack(spacing: 16) {
+                    Button {
+                        shareWorkoutImage()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text("Share Your Success")
+                                .font(.system(size: 17, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(.blue)
+                        .cornerRadius(16)
+                        .shadow(color: Color.blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                    }
+                    
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.blue)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(.blue, lineWidth: 2)
+                            )
+                    }
+                }
+                .padding(.horizontal, 32)
+                .padding(.bottom, 40)
+            }
+            .padding()
+        }
+        .confettiCannon(trigger: $confettiCannon, num: 300, radius: 600, hapticFeedback: true)
+        .sheet(isPresented: $showShareSheet) {
+            if let image = generateShareImage() {
+                ShareSheet(items: [image, shareText])
+            }
+        }
+        .onAppear {
+            // Trigger confetti when sheet appears
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                confettiCannon += 1
+            }
+        }
+    }
+    
+    func shareWorkoutImage() {
+        showShareSheet = true
+    }
+    
+    func generateShareImage() -> UIImage? {
+        let shareView = WorkoutShareView(
+            sets: timerManager.appliedSets,
+            averageRestTime: averageRestTime,
+            restRange: "\(timerManager.appliedMinRest)-\(timerManager.appliedMaxRest)"
+        )
+
+        let renderer = ImageRenderer(content: shareView)
+        renderer.scale = 3.0
+
+        return renderer.uiImage
+    }
+}
+
+struct WorkoutShareView: View {
+    let sets: Int
+    let averageRestTime: String
+    let restRange: String
+
+    var body: some View {
+        VStack(spacing: 20) {
+            ShareStatRow(icon: "figure.strengthtraining.traditional", label: "Sets", value: "\(sets)")
+
+            Divider()
+                .background(.white.opacity(0.5))
+
+            ShareStatRow(icon: "clock.fill", label: "Avg Rest", value: averageRestTime)
+
+            Divider()
+                .background(.white.opacity(0.5))
+
+            ShareStatRow(icon: "chart.bar.fill", label: "Range", value: "\(restRange) min")
+        }
+        .padding(30)
+        .background(.blue.gradient)
+        .fixedSize()
+    }
+}
+
+struct ShareStatRow: View {
+    let icon: String
+    let label: String
+    let value: String
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            Image(systemName: icon)
+                .font(.system(size: 36, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 50)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.9))
+                Text(value)
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+struct StatRow: View {
+    @Environment(\.colorScheme) var colorScheme
+    let label: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(colorScheme == .light ? .black : .white)
+            Spacer()
+            Text(value)
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(colorScheme == .light ? .black : .white)
+        }
+    }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: items,
+            applicationActivities: nil
+        )
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct TimerSettingsView: View {
