@@ -21,7 +21,6 @@ struct CompDiceView: View {
     @State private var isRolling: Bool = false
     @State private var rotationAngle: Double = 0
     @State private var displayText: String = ""
-    
     @State private var displayPaywall: Bool = false
 
     private var diceOptions: [String] {
@@ -79,6 +78,8 @@ struct CompDiceView: View {
             let randomInt = Int.random(in: 0..<diceOptions.count)
             rolledText = diceOptions[randomInt]
         }
+        
+        BadgeManager.shared.trackDiceRoll()
     }
 
     var body: some View {

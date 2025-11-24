@@ -15,6 +15,7 @@ struct TimerView: View {
     @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var timerManager: TimerManager
     @EnvironmentObject var customerManager: CustomerInfoManager
+
     @State private var settingsShown: Bool = false
     @State private var startClicked: Bool = false
     @State private var countdownOn: Bool = false
@@ -286,6 +287,9 @@ struct TimerView: View {
                 TimerSettingsView(timerManager: timerManager, draftSets: $draftSets, draftMinRest: $draftMinRest, draftMaxRest: $draftMaxRest)
                     .presentationDetents([.height(300)])
             }
+            .sheet(isPresented: $timerManager.workoutCompleted) {
+                TimerCompleted()
+            }
             .onChange(of: timerManager.appliedSets) {
                 if timerManager.isTimerRunning {
                     timerManager.resetTimer()
@@ -341,6 +345,12 @@ struct TimerView: View {
         .onAppear {
             AnalyticsManager.shared.trackScreenView("Timer")
         }
+    }
+}
+
+struct TimerCompleted: View {
+    var body: some View {
+        /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Hello, world!@*/Text("Hello, world!")/*@END_MENU_TOKEN@*/
     }
 }
 

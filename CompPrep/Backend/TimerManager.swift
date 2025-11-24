@@ -69,6 +69,10 @@ class TimerManager: ObservableObject {
             if self.currentRestTime <= 0 {
                 if self.currentSetNumber >= self.appliedSets {
                     self.workoutCompleted = true
+                    
+                    let totalRestTime = self.restTimes.reduce(0, +)
+                    BadgeManager.shared.trackWorkoutCompleted(totalRestTime: totalRestTime)
+                    
                     AnalyticsManager.shared.trackTimerCompleted(totalSets: self.appliedSets)
                     self.isTimerRunning = false
                     self.timer?.invalidate()

@@ -13,9 +13,11 @@ struct SettingsView: View {
     @AppStorage("diceAnimation") var diceAnimation: Bool = true
     @AppStorage("selectedHomeScreen") var selectedHomeScreen = "Comp Dice"
     @Environment(\.colorScheme) var colorScheme
+    @State private var badgeManager = BadgeManager.shared
     @State private var isCustomerCenterPresented: Bool = false
     @State private var feedbackPresented: Bool = false
     @State private var emailListPresented: Bool = false
+    @State private var badgePresented: Bool = false
     
     var appVersion: String? {
         return Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
@@ -31,6 +33,98 @@ struct SettingsView: View {
                 
                 ScrollView {
                     VStack {
+                        VStack(alignment: .leading) {
+                            Button {
+                                badgePresented = true
+                            } label: {
+                                HStack {
+                                    Text("Badges")
+                                        .bold()
+                                        .font(.title)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                }
+                                .foregroundStyle(colorScheme == .light ? .black : .white)
+                            }
+
+                            ScrollView(.horizontal) {
+                                HStack {
+                                    if !badgeManager.collectedBadges.isEmpty {
+                                        ForEach(badgeManager.collectedBadges, id: \.self) { badge in
+                                            HStack {
+                                                VStack {
+                                                    Image(systemName: badge.icon)
+                                                        .resizable()
+                                                        .frame(width: 30, height: 30)
+                                                    Text(badge.name)
+                                                }
+                                                .frame(width: 120, height: 80)
+                                                .padding()
+                                                .background(.gray.opacity(0.3))
+                                                .cornerRadius(12)
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        ForEach(0..<1, id: \.self) { badge in
+                                            HStack {
+                                                VStack {
+                                                    Image(systemName: "figure.strengthtraining.traditional")
+                                                        .resizable()
+                                                        .frame(width: 30, height: 30)
+                                                    Text("No Badges Claimed")
+                                                }
+                                                .frame(width: 150, height: 80)
+                                                .padding()
+                                                .background(.gray.opacity(0.3))
+                                                .cornerRadius(12)
+                                                .padding(.trailing, 8)
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.top)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(32)
+                        .padding(.bottom, 8)
+                        
+                        VStack {
+                            Toggle("Dice Animation", isOn: $diceAnimation)
+                                .simultaneousGesture(TapGesture().onEnded {
+                                    AnalyticsManager.shared.trackDiceAnimationChanged(isOn: diceAnimation)
+                                })
+                                .padding(.top, -2)
+
+                            
+                            Divider()
+                                .padding(.vertical, 2)
+                            
+                            HStack {
+                                Text("Home Screen")
+                                Spacer()
+                                Picker("Home Screen", selection: $selectedHomeScreen) {
+                                    ForEach(homeScreenOptions, id: \.self) {
+                                        Text($0)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                .labelsHidden()
+                            }
+                            .onChange(of: selectedHomeScreen) { _, newValue in
+                                AnalyticsManager.shared.trackHomeScreenChanged(screen: newValue)
+                            }
+                            .padding(.bottom, -6)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
+                        .cornerRadius(32)
+                        .padding(.bottom, 8)
+                        
                         VStack {
                             Button {
                                 isCustomerCenterPresented = true
@@ -89,39 +183,6 @@ struct SettingsView: View {
                         .padding()
                         .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
                         .cornerRadius(32)
-                        .padding(.bottom, 8)
-                        
-                        VStack {
-                            Toggle("Dice Animation", isOn: $diceAnimation)
-                                .simultaneousGesture(TapGesture().onEnded {
-                                    AnalyticsManager.shared.trackDiceAnimationChanged(isOn: diceAnimation)
-                                })
-                                .padding(.top, -2)
-
-                            
-                            Divider()
-                                .padding(.vertical, 2)
-                            
-                            HStack {
-                                Text("Home Screen")
-                                Spacer()
-                                Picker("Home Screen", selection: $selectedHomeScreen) {
-                                    ForEach(homeScreenOptions, id: \.self) {
-                                        Text($0)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .labelsHidden()
-                            }
-                            .onChange(of: selectedHomeScreen) { _, newValue in
-                                AnalyticsManager.shared.trackHomeScreenChanged(screen: newValue)
-                            }
-                            .padding(.bottom, -6)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(colorScheme == .light ? .white : Color(.secondarySystemGroupedBackground))
-                        .cornerRadius(32)
                         
                         VStack {
                             HStack {
@@ -152,6 +213,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $emailListPresented) {
                 EmailListView(isPresented: $emailListPresented)
+            }
+            .sheet(isPresented: $badgePresented) {
+                BadgeView()
             }
         }
         .onAppear {
